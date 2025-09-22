@@ -69,9 +69,8 @@ class BedrockLLM:
                 service_name='bedrock-runtime',
                 region_name=self.region
             )
-            
-            # Test the client with a simple call
-            self.bedrock_client.list_foundation_models()
+            # Instead of list_foundation_models, do a simple model invocation for connection test
+            # This will be handled in test_connection()
             
             # Initialize LangChain ChatBedrock
             self.llm = ChatBedrock(
