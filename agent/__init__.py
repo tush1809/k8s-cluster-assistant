@@ -11,6 +11,7 @@ import logging
 
 from bedrock import create_bedrock_llm
 from tools import get_kubernetes_tools
+from kubernetes import client as k8s_client
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -59,12 +60,11 @@ Remember to be helpful and provide actionable information when possible.
         """
         self.model_name = model_name
         self.region = region
-        
         # Initialize components
         self.bedrock_llm = create_bedrock_llm(model_name, region)
-        self.tools = get_kubernetes_tools()
+        self.k8s_client = k8s_client
+        self.tools = get_kubernetes_tools(self.k8s_client)
         self.agent_executor = None
-        
         self._setup_agent()
     
     def _setup_agent(self):
