@@ -4,7 +4,7 @@ These tools wrap the Kubernetes client functions for use with LLM agents.
 """
 
 from langchain.tools import BaseTool
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Type, Optional, List
 from k8s_client import KubernetesClient
 
@@ -59,6 +59,8 @@ class KubernetesListNamespacesTool(BaseTool):
     Returns information about namespace names, status, creation time, and labels.
     """
     args_schema: Type[BaseModel] = ListNamespacesInput
+    
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __init__(self, k8s_client: KubernetesClient):
         super().__init__()
@@ -94,6 +96,8 @@ class KubernetesListPodsTool(BaseTool):
     Returns information about pod names, namespaces, status, readiness, and restart counts.
     """
     args_schema: Type[BaseModel] = ListPodsInput
+    
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __init__(self, k8s_client: KubernetesClient):
         super().__init__()
@@ -143,6 +147,8 @@ class KubernetesListNodesTool(BaseTool):
     Returns information about node names, status, roles, versions, and resource capacity.
     """
     args_schema: Type[BaseModel] = ListNodesInput
+    
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __init__(self, k8s_client: KubernetesClient):
         super().__init__()
@@ -187,6 +193,8 @@ class KubernetesListServicesTool(BaseTool):
     Returns information about service names, types, IPs, and ports.
     """
     args_schema: Type[BaseModel] = ListServicesInput
+    
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __init__(self, k8s_client: KubernetesClient):
         super().__init__()
@@ -237,6 +245,8 @@ class KubernetesGetClusterInfoTool(BaseTool):
     Returns counts of namespaces, pods, nodes, services, and other summary information.
     """
     args_schema: Type[BaseModel] = GetClusterInfoInput
+    
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __init__(self, k8s_client: KubernetesClient):
         super().__init__()
