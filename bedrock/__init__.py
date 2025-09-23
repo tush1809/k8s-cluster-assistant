@@ -1,6 +1,7 @@
 """
 AWS Bedrock integration for LLM functionality.
 Handles model initialization, configuration, and response generation.
+Supports mock mode for frontend/CLI testing without AWS access.
 """
 
 import boto3
@@ -12,9 +13,13 @@ import os
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+class MockLLM:
+    """Mock LLM for testing UI without AWS Bedrock."""
+    def invoke(self, prompt):
+        return f"[MOCK RESPONSE] You asked: '{prompt}'. This is a simulated answer."
 
 class BedrockLLM:
-    """AWS Bedrock LLM wrapper for cluster information queries."""
+    """AWS Bedrock LLM wrapper for cluster information queries. Supports mock mode."""
     
     # Available models with their configurations
     AVAILABLE_MODELS = {
@@ -35,16 +40,18 @@ class BedrockLLM:
         }
     }
     
-    def __init__(self, model_name: str = "claude-3-haiku", region: str = None):
+    def __init__(self, model_name: str = "claude-3-haiku", region: str = None, mock_mode: bool = None):
         """
-        Initialize Bedrock LLM.
+        Initialize Bedrock LLM (or mock LLM if mock_mode is enabled).
         
         Args:
             model_name: Name of the model to use (from AVAILABLE_MODELS)
             region: AWS region for Bedrock service
+            mock_mode: If True, use mock LLM for testing (set via env BEDROCK_MOCK_MODE)
         """
         self.model_name = model_name
         self.region = region or os.getenv("AWS_REGION", "us-west-2")
+        self.mock_mode = mock_mode if mock_mode is not None else os.getenv("BEDROCK_MOCK_MODE", "false").lower() == "true"
         
         if model_name not in self.AVAILABLE_MODELS:
             raise ValueError(f"Model {model_name} not supported. Available: {list(self.AVAILABLE_MODELS.keys())}")
@@ -52,7 +59,15 @@ class BedrockLLM:
         self.model_config = self.AVAILABLE_MODELS[model_name]
         self.llm = None
         
-        self._initialize_bedrock()
+        if self.mock_mode:
+            self._initialize_mock_llm()
+        else:
+            self._initialize_bedrock()
+    
+    def _initialize_mock_llm(self):
+        """Initialize the mock LLM for UI/CLI testing."""
+        self.llm = MockLLM()
+        logger.info("Initialized MOCK LLM for frontend/CLI testing.")
     
     def _initialize_bedrock(self):
         """Initialize the Bedrock client and LLM."""
@@ -101,18 +116,22 @@ class BedrockLLM:
             raise
     
     def get_llm(self):
-        """Get the initialized LLM instance."""
+        """Get the initialized LLM instance (mock or real)."""
         if not self.llm:
-            raise RuntimeError("LLM not initialized. Call _initialize_bedrock() first.")
+            raise RuntimeError("LLM not initialized. Call _initialize_bedrock() or _initialize_mock_llm() first.")
         return self.llm
     
     def test_connection(self) -> bool:
         """
-        Test the Bedrock connection.
+        Test the Bedrock connection (always True in mock mode).
         
         Returns:
             True if connection is successful, False otherwise
         """
+        if self.mock_mode:
+            logger.info("Mock mode enabled: test_connection always returns True.")
+            return True
+        
         try:
             # Test with a simple prompt
             test_prompt = "Hello"
@@ -139,18 +158,20 @@ class BedrockLLM:
         }
 
 
-def create_bedrock_llm(model_name: str = None, region: str = None) -> BedrockLLM:
+def create_bedrock_llm(model_name: str = None, region: str = None, mock_mode: bool = None) -> BedrockLLM:
     """
-    Factory function to create a BedrockLLM instance.
+    Factory function to create a BedrockLLM instance (supports mock mode).
     
     Args:
         model_name: Model to use (defaults to environment variable or claude-3-haiku)
         region: AWS region (defaults to environment variable or us-west-2)
+        mock_mode: If True, use mock LLM for testing (set via env BEDROCK_MOCK_MODE)
     
     Returns:
         Initialized BedrockLLM instance
     """
     model_name = model_name or os.getenv("BEDROCK_MODEL_NAME", "claude-3-haiku")
     region = region or os.getenv("AWS_REGION", "us-west-2")
-    
-    return BedrockLLM(model_name=model_name, region=region)
+    if mock_mode is None:
+        mock_mode = os.getenv("BEDROCK_MOCK_MODE", "false").lower() == "true"
+    return BedrockLLM(model_name=model_name, region=region, mock_mode=mock_mode)
