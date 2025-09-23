@@ -61,7 +61,8 @@ def test_tools():
     print("Testing LangChain Tools...")
     
     try:
-        tools = get_kubernetes_tools()
+        k8s_client = KubernetesClient()
+        tools = get_kubernetes_tools(k8s_client)
         print(f"✅ Loaded {len(tools)} tools: {[tool.name for tool in tools]}")
         
         # Test one tool
