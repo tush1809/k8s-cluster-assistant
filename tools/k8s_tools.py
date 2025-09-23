@@ -53,9 +53,9 @@ class KubernetesListNamespacesTool(BaseTool):
     """
     args_schema: Type[BaseModel] = ListNamespacesInput
     
-    def __init__(self):
+    def __init__(self, k8s_client: KubernetesClient):
         super().__init__()
-        self.k8s_client = KubernetesClient()
+        self.k8s_client = k8s_client
     
     def _run(self) -> str:
         """Execute the tool."""
@@ -90,9 +90,9 @@ class KubernetesListPodsTool(BaseTool):
     """
     args_schema: Type[BaseModel] = ListPodsInput
     
-    def __init__(self):
+    def __init__(self, k8s_client: KubernetesClient):
         super().__init__()
-        self.k8s_client = KubernetesClient()
+        self.k8s_client = k8s_client
     
     def _run(self, namespace: Optional[str] = None) -> str:
         """Execute the tool."""
@@ -142,9 +142,9 @@ class KubernetesListNodesTool(BaseTool):
     """
     args_schema: Type[BaseModel] = ListNodesInput
     
-    def __init__(self):
+    def __init__(self, k8s_client: KubernetesClient):
         super().__init__()
-        self.k8s_client = KubernetesClient()
+        self.k8s_client = k8s_client
     
     def _run(self) -> str:
         """Execute the tool."""
@@ -187,9 +187,9 @@ class KubernetesListServicesTool(BaseTool):
     """
     args_schema: Type[BaseModel] = ListServicesInput
     
-    def __init__(self):
+    def __init__(self, k8s_client: KubernetesClient):
         super().__init__()
-        self.k8s_client = KubernetesClient()
+        self.k8s_client = k8s_client
     
     def _run(self, namespace: Optional[str] = None) -> str:
         """Execute the tool."""
@@ -241,9 +241,9 @@ class KubernetesGetClusterInfoTool(BaseTool):
     """
     args_schema: Type[BaseModel] = GetClusterInfoInput
     
-    def __init__(self):
+    def __init__(self, k8s_client: KubernetesClient):
         super().__init__()
-        self.k8s_client = KubernetesClient()
+        self.k8s_client = k8s_client
     
     def _run(self) -> str:
         """Execute the tool."""
@@ -272,12 +272,12 @@ class KubernetesGetClusterInfoTool(BaseTool):
             return f"Error retrieving cluster information: {str(e)}"
 
 
-def get_kubernetes_tools() -> List[BaseTool]:
-    """Return a list of all Kubernetes tools."""
+def get_kubernetes_tools(k8s_client: KubernetesClient) -> List[BaseTool]:
+    """Return a list of all Kubernetes tools, sharing the same client instance."""
     return [
-        KubernetesListNamespacesTool(),
-        KubernetesListPodsTool(),
-        KubernetesListNodesTool(),
-        KubernetesListServicesTool(),
-        KubernetesGetClusterInfoTool()
+        KubernetesListNamespacesTool(k8s_client),
+        KubernetesListPodsTool(k8s_client),
+        KubernetesListNodesTool(k8s_client),
+        KubernetesListServicesTool(k8s_client),
+        KubernetesGetClusterInfoTool(k8s_client)
     ]
